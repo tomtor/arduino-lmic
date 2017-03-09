@@ -74,6 +74,11 @@ static void hal_io_check() {
 // -----------------------------------------------------------------------------
 // SPI
 
+#ifdef ARDUINO_ARCH_STM32F1
+SPIClass SPI_2(2);
+#define SPI SPI_2
+#endif
+
 static const SPISettings settings(10E6, MSBFIRST, SPI_MODE0);
 
 static void hal_spi_init () {
@@ -151,7 +156,9 @@ u4_t hal_ticks () {
 
     // 0 leads to correct, but overly complex code (it could just return
     // micros() unmodified), 8 leaves no room for the overlapping bit.
-    static_assert(US_PER_OSTICK_EXPONENT > 0 && US_PER_OSTICK_EXPONENT < 8, "Invalid US_PER_OSTICK_EXPONENT value");
+    #if !(US_PER_OSTICK_EXPONENT > 0 && US_PER_OSTICK_EXPONENT < 8)
+    #error "Invalid US_PER_OSTICK_EXPONENT value"
+    #endif
 }
 
 // Returns the number of ticks until time. Negative values indicate that
