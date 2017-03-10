@@ -1592,7 +1592,12 @@ static void setupRx1DnData (xref2osjob_t osjob) {
 
 
 static void updataDone (xref2osjob_t osjob) {
-    txDone(sec2osticks(LMIC.rxDelay), FUNC_ADDR(setupRx1DnData));
+    if (!LMIC.skipRX)
+        txDone(sec2osticks(LMIC.rxDelay), FUNC_ADDR(setupRx1DnData));
+    else {
+        LMIC.dataLen= 0;
+        processDnData();
+    }
 }
 
 // ========================================

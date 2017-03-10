@@ -253,7 +253,8 @@ void hal_failed (const char *file, u2_t line) {
     LMIC_FAILURE_TO.print(file);
     LMIC_FAILURE_TO.print(':');
     LMIC_FAILURE_TO.println(line);
-    LMIC_FAILURE_TO.flush();
+    //LMIC_FAILURE_TO.flush();
+    delay(10);
 #endif
     hal_disableIRQs();
     while(1);

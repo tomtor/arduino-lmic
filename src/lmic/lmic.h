@@ -177,6 +177,7 @@ struct lmic_t {
     u1_t        txChnl;          // channel for next TX
     u1_t        globalDutyRate;  // max rate: 1/2^k
     ostime_t    globalDutyAvail; // time device can send again
+    bit_t       skipRX;         // Skip RX window to safe power
 
     u4_t        netid;        // current network id (~0 - none)
     u2_t        opmode;
