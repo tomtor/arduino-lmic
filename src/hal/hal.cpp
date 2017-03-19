@@ -75,8 +75,8 @@ static void hal_io_check() {
 // SPI
 
 #ifdef ARDUINO_ARCH_STM32F1
-SPIClass SPI_2(2);
-#define SPI SPI_2
+SPIClass* SPIp;
+#define SPI (*SPIp)
 #endif
 
 static const SPISettings settings(10E6, MSBFIRST, SPI_MODE0);
