@@ -172,7 +172,15 @@ void hal_waitUntil (u4_t time) {
     // From delayMicroseconds docs: Currently, the largest value that
     // will produce an accurate delay is 16383.
     while (delta > (16000 / US_PER_OSTICK)) {
+#ifdef ARDUINO_ARCH_STM32F1
+        // Low power SLEEP
+        uint32_t start= millis();
+        while (millis() - start < 16) {
+            asm("    wfi");
+        }
+#else
         delay(16);
+#endif
         delta -= (16000 / US_PER_OSTICK);
     }
     if (delta > 0)
@@ -185,6 +193,19 @@ u1_t hal_checkTimer (u4_t time) {
     return delta_time(time) <= 0;
 }
 
+#ifdef ARDUINO_ARCH_STM32F1
+//
+// Not clear why we need to disable interrupts when we are just polling
+// the GPIO pins. Anyway, disabling interrupts prevents the output of the
+// UART in hal_failed(), so we don't disable IRQs for the STM32 which appears
+// to work just fine
+//
+void hal_disableIRQs () {}
+
+void hal_enableIRQs () {
+    hal_io_check();
+}
+#else
 static uint8_t irqlevel = 0;
 
 void hal_disableIRQs () {
@@ -207,6 +228,7 @@ void hal_enableIRQs () {
         hal_io_check();
     }
 }
+#endif
 
 void hal_sleep () {
     // Not implemented
@@ -253,8 +275,7 @@ void hal_failed (const char *file, u2_t line) {
     LMIC_FAILURE_TO.print(file);
     LMIC_FAILURE_TO.print(':');
     LMIC_FAILURE_TO.println(line);
-    //LMIC_FAILURE_TO.flush();
-    delay(10);
+    LMIC_FAILURE_TO.flush();
 #endif
     hal_disableIRQs();
     while(1);
