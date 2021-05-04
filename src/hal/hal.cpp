@@ -180,10 +180,13 @@ void hal_processPendingIRQs() {
 // -----------------------------------------------------------------------------
 // SPI
 
-#ifdef ARDUINO_ARCH_STM32F1
+// Allow configuration of SPI port in client code by assigning to SPIp
 SPIClass* SPIp = &SPI;
 #define SPI (*SPIp)
-#endif
+
+// Example client code:
+// SPIClass *SPIp; SPIClass mySPI(2); SPIp = &mySPI;
+
 
 static void hal_spi_init () {
     SPI.begin();
@@ -349,23 +352,6 @@ u1_t hal_checkTimer (u4_t time) {
     return delta_time(time) <= 0;
 }
 
-#ifdef ARDUINO_ARCH_STM32F1
-//
-// Not clear why we need to disable interrupts when we are just polling
-// the GPIO pins. Anyway, disabling interrupts prevents the output of the
-// UART in hal_failed(), so we don't disable IRQs for the STM32 which appears
-// to work just fine
-//
-void hal_disableIRQs () {}
-
-void hal_enableIRQs () {
-    hal_pollPendingIRQs_helper();
-}
-
-uint8_t hal_getIrqLevel(void) {
-    return 0;
-}
-#else
 static uint8_t irqlevel = 0;
 
 void hal_disableIRQs () {
@@ -396,7 +382,6 @@ void hal_enableIRQs () {
 uint8_t hal_getIrqLevel(void) {
     return irqlevel;
 }
-#endif
 
 void hal_sleep () {
     // Not implemented
