@@ -361,6 +361,10 @@ void hal_disableIRQs () {}
 void hal_enableIRQs () {
     hal_pollPendingIRQs_helper();
 }
+
+uint8_t hal_getIrqLevel(void) {
+    return 0;
+}
 #else
 static uint8_t irqlevel = 0;
 
@@ -388,11 +392,11 @@ void hal_enableIRQs () {
 #endif /* !defined(LMIC_USE_INTERRUPTS) */
     }
 }
-#endif
 
 uint8_t hal_getIrqLevel(void) {
     return irqlevel;
 }
+#endif
 
 void hal_sleep () {
     // Not implemented
