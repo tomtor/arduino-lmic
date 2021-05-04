@@ -273,9 +273,7 @@ u4_t hal_ticks () {
 
     // 0 leads to correct, but overly complex code (it could just return
     // micros() unmodified), 8 leaves no room for the overlapping bit.
-    #if !(US_PER_OSTICK_EXPONENT > 0 && US_PER_OSTICK_EXPONENT < 8)
-    #error "Invalid US_PER_OSTICK_EXPONENT value"
-    #endif
+    static_assert(US_PER_OSTICK_EXPONENT > 0 && US_PER_OSTICK_EXPONENT < 8, "Invalid US_PER_OSTICK_EXPONENT value");
 }
 
 // Returns the number of ticks until time. Negative values indicate that
