@@ -570,6 +570,7 @@ struct lmic_t {
     u1_t        txChnl;          // channel for next TX
     u1_t        globalDutyRate;  // max rate: 1/2^k
 
+    bit_t       skipRX;       // skip RX window to safe power
     u1_t        upRepeat;     // configured up repeat
     s1_t        adrTxPow;     // ADR adjusted TX power
     u1_t        datarate;     // current data rate
