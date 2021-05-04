@@ -1,16 +1,37 @@
-/*******************************************************************************
- * Copyright (c) 2014-2015 IBM Corporation.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/*
+ * Copyright (c) 2014-2016 IBM Corporation.
+ * Copyright (c) 2016-2017, 2019 MCCI Corporation.
+ * All rights reserved.
  *
- * Contributors:
- *    IBM Zurich Research Lab - initial API, implementation and documentation
- *******************************************************************************/
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *  * Neither the name of the <organization> nor the
+ *    names of its contributors may be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#define LMIC_DR_LEGACY 0
 
 #include "lmic.h"
 #include <stdbool.h>
+
+extern const struct lmic_pinmap lmic_pins;
 
 // RUNTIME STATE
 static struct {
@@ -18,18 +39,27 @@ static struct {
     osjob_t* runnablejobs;
 } OS;
 
-void os_init () {
+int os_init_ex (const void *pintable) {
     memset(&OS, 0x00, sizeof(OS));
-    hal_init();
-    radio_init();
+    hal_init_ex(pintable);
+    if (! radio_init())
+        return 0;
     LMIC_init();
+    return 1;
+}
+
+void os_init() {
+    if (os_init_ex((const void *)&lmic_pins))
+        return;
+    ASSERT(0);
 }
 
 ostime_t os_getTime () {
     return hal_ticks();
 }
 
-static u1_t unlinkjob (osjob_t** pnext, osjob_t* job) {
+// unlink job from queue, return if removed
+static int unlinkjob (osjob_t** pnext, osjob_t* job) {
     for( ; *pnext; pnext = &((*pnext)->next)) {
         if(*pnext == job) { // unlink
             *pnext = job->next;
@@ -39,10 +69,16 @@ static u1_t unlinkjob (osjob_t** pnext, osjob_t* job) {
     return 0;
 }
 
+static osjob_t** getJobQueue(osjob_t* job) {
+    return os_jobIsTimed(job) ? &OS.scheduledjobs : &OS.runnablejobs;
+}
+
 // clear scheduled job
 void os_clearCallback (osjob_t* job) {
     hal_disableIRQs();
-    u1_t res = unlinkjob(&OS.scheduledjobs, job) || unlinkjob(&OS.runnablejobs, job);
+
+    unlinkjob(getJobQueue(job), job);
+
     hal_enableIRQs();
     #if LMIC_DEBUG_LEVEL > 1
         if (res)
@@ -54,11 +90,15 @@ void os_clearCallback (osjob_t* job) {
 void os_setCallback (osjob_t* job, osjobcb_t cb) {
     osjob_t** pnext;
     hal_disableIRQs();
+
     // remove if job was already queued
-    os_clearCallback(job);
-    // fill-in job
-    job->func = cb;
+    unlinkjob(getJobQueue(job), job);
+
+    // fill-in job. Ascending memory order is write-queue friendly
     job->next = NULL;
+    job->deadline = 0;
+    job->func = cb;
+
     // add to end of run queue
     for(pnext=&OS.runnablejobs; *pnext; pnext=&((*pnext)->next));
     *pnext = job;
@@ -71,13 +111,21 @@ void os_setCallback (osjob_t* job, osjobcb_t cb) {
 // schedule timed job
 void os_setTimedCallback (osjob_t* job, ostime_t time, osjobcb_t cb) {
     osjob_t** pnext;
+
+    // special case time 0 -- it will be one tick late.
+    if (time == 0)
+        time = 1;
+
     hal_disableIRQs();
+
     // remove if job was already queued
-    os_clearCallback(job);
+    unlinkjob(getJobQueue(job), job);
+
     // fill-in job
+    job->next = NULL;
     job->deadline = time;
     job->func = cb;
-    job->next = NULL;
+
     // insert into schedule
     for(pnext=&OS.scheduledjobs; *pnext; pnext=&((*pnext)->next)) {
         if((*pnext)->deadline - time > 0) { // (cmp diff, not abs!)
@@ -105,6 +153,8 @@ void os_runloop_once() {
         bool has_deadline = false;
     #endif
     osjob_t* j = NULL;
+    hal_processPendingIRQs();
+
     hal_disableIRQs();
     // check for runnable jobs
     if(OS.runnablejobs) {
@@ -126,4 +176,14 @@ void os_runloop_once() {
         #endif
         j->func(j);
     }
+}
+
+// return true if there are any jobs scheduled within time ticks from now.
+// return false if any jobs scheduled are at least time ticks in the future.
+bit_t os_queryTimeCriticalJobs(ostime_t time) {
+    if (OS.scheduledjobs &&
+        OS.scheduledjobs->deadline - os_getTime() < time)
+        return 1;
+    else
+        return 0;
 }
