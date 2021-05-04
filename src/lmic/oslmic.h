@@ -52,7 +52,6 @@ LMIC_BEGIN_DECLS
 #define EV(a,b,c) /**/
 #define DO_DEVDB(field1,field2) /**/
 #if !defined(CFG_noassert)
-#undef ASSERT
 #define ASSERT(cond) if(!(cond)) hal_failed(__FILE__, __LINE__)
 #else
 #define ASSERT(cond) /**/
@@ -305,8 +304,6 @@ u2_t os_crc16 (xref2cu1_t d, uint len);
 
     // For AVR, store constants in PROGMEM, saving on RAM usage
     #define CONST_TABLE(type, name) const type PROGMEM RESOLVE_TABLE(name)
-
-    #define lmic_printf(fmt, ...) printf_P(PSTR(fmt), ## __VA_ARGS__)
 #else
     static inline u1_t table_get_u1(const u1_t *table, size_t index) { return table[index]; }
     static inline s1_t table_get_s1(const s1_t *table, size_t index) { return table[index]; }
@@ -318,7 +315,6 @@ u2_t os_crc16 (xref2cu1_t d, uint len);
 
     // Declare a table
     #define CONST_TABLE(type, name) const type RESOLVE_TABLE(name)
-    #define lmic_printf printf
 #endif
 
 // ======================================================================

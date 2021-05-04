@@ -2580,43 +2580,22 @@ static void engineUpdate_inner (void) {
     if( (LMIC.opmode & (OP_JOINING|OP_REJOIN|OP_TXDATA|OP_POLL)) != 0 ) {
         // Assuming txChnl points to channel which first becomes available again.
         bit_t jacc = ((LMIC.opmode & (OP_JOINING|OP_REJOIN)) != 0 ? 1 : 0);
-        #if LMIC_DEBUG_LEVEL > 1
-            if (jacc)
-                lmic_printf("%lu: Uplink join pending\n", os_getTime());
-            else
-                lmic_printf("%lu: Uplink data pending\n", os_getTime());
-        #endif
         // Find next suitable channel and return availability time
         if( (LMIC.opmode & OP_NEXTCHNL) != 0 ) {
             txbeg = LMIC.txend = LMICbandplan_nextTx(now);
             LMIC.opmode &= ~OP_NEXTCHNL;
-            #if LMIC_DEBUG_LEVEL > 1
-                lmic_printf("%lu: Airtime available at %lu (channel duty limit)\n", os_getTime(), txbeg);
-            #endif
         } else {
             // no need to consider anything but LMIC.txend.
             txbeg = LMIC.txend;
-            #if LMIC_DEBUG_LEVEL > 1
-                lmic_printf("%lu: Airtime available at %lu (previously determined)\n", os_getTime(), txbeg);
-            #endif
         }
         // Delayed TX or waiting for duty cycle?
-        if( (LMIC.globalDutyRate != 0 || (LMIC.opmode & OP_RNDTX) != 0)  &&  (txbeg - LMIC.globalDutyAvail) < 0 ) {
+        if( (LMIC.globalDutyRate != 0 || (LMIC.opmode & OP_RNDTX) != 0)  &&  (txbeg - LMIC.globalDutyAvail) < 0 )
             txbeg = LMIC.globalDutyAvail;
-            #if LMIC_DEBUG_LEVEL > 1
-                lmic_printf("%lu: Airtime available at %lu (global duty limit)\n", os_getTime(), txbeg);
-            #endif
-        }
 #if !defined(DISABLE_BEACONS)
         // If we're tracking a beacon...
         // then make sure TX-RX transaction is complete before beacon
         if( (LMIC.opmode & OP_TRACK) != 0 &&
             txbeg + (jacc ? JOIN_GUARD_osticks : TXRX_GUARD_osticks) - rxtime > 0 ) {
-
-            #if LMIC_DEBUG_LEVEL > 1
-                lmic_printf("%lu: Awaiting beacon before uplink\n", os_getTime());
-            #endif
-
             // Not enough time to complete TX-RX before beacon - postpone after beacon.
             // In order to avoid clustering of postponed TX right after beacon randomize start!
             txDelay(rxtime + BCN_RESERVE_osticks, 16);
@@ -2626,9 +2605,6 @@ static void engineUpdate_inner (void) {
 #endif // !DISABLE_BEACONS
         // Earliest possible time vs overhead to setup radio
         if( txbeg - (now + TX_RAMPUP) < 0 ) {
-            #if LMIC_DEBUG_LEVEL > 1
-                lmic_printf("%lu: Ready for uplink\n", os_getTime());
-            #endif
             // We could send right now!
             txbeg = now;
             dr_t txdr = (dr_t)LMIC.datarate;
@@ -2692,9 +2668,6 @@ static void engineUpdate_inner (void) {
             os_radio(RADIO_TX);
             return;
         }
-        #if LMIC_DEBUG_LEVEL > 1
-            lmic_printf("%lu: Uplink delayed until %lu\n", os_getTime(), txbeg);
-        #endif
         // Cannot yet TX
         if( (LMIC.opmode & OP_TRACK) == 0 )
             goto txdelay; // We don't track the beacon - nothing else to do - so wait for the time to TX

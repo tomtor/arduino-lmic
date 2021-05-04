@@ -359,7 +359,7 @@ u1_t hal_checkTimer (u4_t time) {
 void hal_disableIRQs () {}
 
 void hal_enableIRQs () {
-    hal_io_check();
+    hal_pollPendingIRQs_helper();
 }
 #else
 static uint8_t irqlevel = 0;

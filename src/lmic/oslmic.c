@@ -29,7 +29,6 @@
 #define LMIC_DR_LEGACY 0
 
 #include "lmic.h"
-#include <stdbool.h>
 
 extern const struct lmic_pinmap lmic_pins;
 
@@ -80,10 +79,6 @@ void os_clearCallback (osjob_t* job) {
     unlinkjob(getJobQueue(job), job);
 
     hal_enableIRQs();
-    #if LMIC_DEBUG_LEVEL > 1
-        if (res)
-            lmic_printf("%lu: Cleared job %p\n", os_getTime(), job);
-    #endif
 }
 
 // schedule immediately runnable job
@@ -103,9 +98,6 @@ void os_setCallback (osjob_t* job, osjobcb_t cb) {
     for(pnext=&OS.runnablejobs; *pnext; pnext=&((*pnext)->next));
     *pnext = job;
     hal_enableIRQs();
-    #if LMIC_DEBUG_LEVEL > 1
-        lmic_printf("%lu: Scheduled job %p, cb %p ASAP\n", os_getTime(), job, cb);
-    #endif
 }
 
 // schedule timed job
@@ -136,9 +128,6 @@ void os_setTimedCallback (osjob_t* job, ostime_t time, osjobcb_t cb) {
     }
     *pnext = job;
     hal_enableIRQs();
-    #if LMIC_DEBUG_LEVEL > 1
-        lmic_printf("%lu: Scheduled job %p, cb %p at %lu\n", os_getTime(), job, cb, time);
-    #endif
 }
 
 // execute jobs from timer and from run queue
@@ -149,9 +138,6 @@ void os_runloop () {
 }
 
 void os_runloop_once() {
-    #if LMIC_DEBUG_LEVEL > 1
-        bool has_deadline = false;
-    #endif
     osjob_t* j = NULL;
     hal_processPendingIRQs();
 
@@ -163,17 +149,11 @@ void os_runloop_once() {
     } else if(OS.scheduledjobs && hal_checkTimer(OS.scheduledjobs->deadline)) { // check for expired timed jobs
         j = OS.scheduledjobs;
         OS.scheduledjobs = j->next;
-        #if LMIC_DEBUG_LEVEL > 1
-            has_deadline = true;
-        #endif
     } else { // nothing pending
         hal_sleep(); // wake by irq (timer already restarted)
     }
     hal_enableIRQs();
     if(j) { // run job callback
-        #if LMIC_DEBUG_LEVEL > 1
-            lmic_printf("%lu: Running job %p, cb %p, deadline %lu\n", os_getTime(), j, j->func, has_deadline ? j->deadline : 0);
-        #endif
         j->func(j);
     }
 }

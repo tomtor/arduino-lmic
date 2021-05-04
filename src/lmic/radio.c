@@ -849,11 +849,7 @@ static void txlora () {
     u1_t sf = getSf(LMIC.rps) + 6; // 1 == SF7
     u1_t bw = getBw(LMIC.rps);
     u1_t cr = getCr(LMIC.rps);
-<<<<<<< HEAD
-    lmic_printf("%lu: TXMODE, freq=%lu, len=%d, SF=%d, BW=%d, CR=4/%d, IH=%d\n",
-=======
     LMIC_DEBUG_PRINTF("%"LMIC_PRId_ostime_t": TXMODE, freq=%"PRIu32", len=%d, SF=%d, BW=%d, CR=4/%d, IH=%d\n",
->>>>>>> 1a6074b45fb3d671aa2ad02737ab6a126bbd975d
            os_getTime(), LMIC.freq, LMIC.dataLen, sf,
            bw == BW125 ? 125 : (bw == BW250 ? 250 : 500),
            cr == CR_4_5 ? 5 : (cr == CR_4_6 ? 6 : (cr == CR_4_7 ? 7 : 8)),
