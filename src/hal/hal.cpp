@@ -185,8 +185,6 @@ SPIClass* SPIp = &SPI;
 #define SPI (*SPIp)
 #endif
 
-static const SPISettings settings(10E6, MSBFIRST, SPI_MODE0);
-
 static void hal_spi_init () {
     SPI.begin();
 }
