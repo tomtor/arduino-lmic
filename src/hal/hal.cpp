@@ -309,7 +309,7 @@ u4_t hal_waitUntil (u4_t time) {
 #ifdef ARDUINO_ARCH_STM32F1
         // Low power SLEEP
         uint32_t start= millis();
-        while (millis() - start < 16) {
+        while (millis() - start < HAL_WAITUNTIL_DOWNCOUNT_MS) {
             asm("    wfi");
         }
 #else
