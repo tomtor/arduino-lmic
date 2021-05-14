@@ -1071,7 +1071,7 @@ static void startrx (u1_t rxmode) {
     // blunt instruments. If we see that we're not in sleep mode,
     // force sleep (because we might have to switch modes)
     if ((rOpMode & OPMODE_MASK) != OPMODE_SLEEP) {
-#if LMIC_DEBUG_LEVEL > 0
+#if 1 // LMIC_DEBUG_LEVEL > 0
         LMIC_DEBUG_PRINTF("?%s: OPMODE != OPMODE_SLEEP: %#02x\n", __func__, rOpMode);
 #endif
         opmode(OPMODE_SLEEP);
