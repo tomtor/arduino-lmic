@@ -90,7 +90,7 @@
 // Enable this to allow using printf() to print to the given serial port
 // (or any other Print object). This can be easy for debugging. The
 // current implementation only works on AVR, though.
-//#define LMIC_PRINTF_TO Serial
+#define LMIC_PRINTF_TO Serial
 
 // Enable this to use interrupt handler routines listening for RISING signals.
 // Otherwise, the library polls digital input lines for changes.

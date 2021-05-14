@@ -1062,7 +1062,23 @@ static void rxfsk (u1_t rxmode) {
 }
 
 static void startrx (u1_t rxmode) {
-    //ASSERT( (readReg(RegOpMode) & OPMODE_MASK) == OPMODE_SLEEP );
+#if 0
+    ASSERT( (readReg(RegOpMode) & OPMODE_MASK) == OPMODE_SLEEP );
+#else
+    u1_t const rOpMode = readReg(RegOpMode);
+
+    // originally, this code ASSERT()ed, but asserts are both bad and
+    // blunt instruments. If we see that we're not in sleep mode,
+    // force sleep (because we might have to switch modes)
+    if ((rOpMode & OPMODE_MASK) != OPMODE_SLEEP) {
+#if LMIC_DEBUG_LEVEL > 0
+        LMIC_DEBUG_PRINTF("?%s: OPMODE != OPMODE_SLEEP: %#02x\n", __func__, rOpMode);
+#endif
+        opmode(OPMODE_SLEEP);
+        hal_waitUntil(os_getTime() + ms2osticks(1));
+    }
+#endif
+
     if(getSf(LMIC.rps) == FSK) { // FSK modem
         rxfsk(rxmode);
     } else { // LoRa modem
