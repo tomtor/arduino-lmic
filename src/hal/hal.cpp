@@ -174,10 +174,15 @@ void hal_waitUntil (u4_t time) {
     while (delta > (16000 / US_PER_OSTICK)) {
 #ifdef ARDUINO_ARCH_STM32F1
         // Low power SLEEP
+#if 0
         uint32_t start= millis();
         while (millis() - start < 16) {
             asm("    wfi");
         }
+#else
+        extern void mdelay(int, bool mode = false);
+-       mdelay(16);
+#endif
 #else
         delay(16);
 #endif
