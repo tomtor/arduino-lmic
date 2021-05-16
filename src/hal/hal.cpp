@@ -308,15 +308,22 @@ u4_t hal_waitUntil (u4_t time) {
         // are disabled.
 #ifdef ARDUINO_ARCH_STM32F1
         // Low power SLEEP
+#if 0
         uint32_t start= millis();
         while (millis() - start < HAL_WAITUNTIL_DOWNCOUNT_MS) {
             asm("    wfi");
         }
 #else
+        extern void mdelay(int, bool mode = false);
+        mdelay(HAL_WAITUNTIL_DOWNCOUNT_MS);
+#endif
+#else
         delay(HAL_WAITUNTIL_DOWNCOUNT_MS);
 #endif
         // re-synchronize.
         delta = delta_time(time);
+        // Old code:
+        // delta -= ((HAL_WAITUNTIL_DOWNCOUNT_MS * 1000) / US_PER_OSTICK);
     }
 
     // The radio driver runs with interrupt disabled, and this can

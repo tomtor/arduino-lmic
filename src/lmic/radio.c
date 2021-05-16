@@ -1062,7 +1062,7 @@ static void rxfsk (u1_t rxmode) {
 }
 
 static void startrx (u1_t rxmode) {
-#if 0
+#if 1
     ASSERT( (readReg(RegOpMode) & OPMODE_MASK) == OPMODE_SLEEP );
 #else
     u1_t const rOpMode = readReg(RegOpMode);
@@ -1071,7 +1071,7 @@ static void startrx (u1_t rxmode) {
     // blunt instruments. If we see that we're not in sleep mode,
     // force sleep (because we might have to switch modes)
     if ((rOpMode & OPMODE_MASK) != OPMODE_SLEEP) {
-#if 1 // LMIC_DEBUG_LEVEL > 0
+#if LMIC_DEBUG_LEVEL > 0
         LMIC_DEBUG_PRINTF("?%s: OPMODE != OPMODE_SLEEP: %#02x\n", __func__, rOpMode);
 #endif
         opmode(OPMODE_SLEEP);

@@ -1838,8 +1838,8 @@ static void setupRx1DnData (xref2osjob_t osjob) {
 static void updataDone (xref2osjob_t osjob) {
     if (LMIC.skipRX) {
         LMIC.dataLen = 0;
-	processDnData();
-	return;
+        processDnData();
+        return;
     }
     LMIC_API_PARAMETER(osjob);
 
