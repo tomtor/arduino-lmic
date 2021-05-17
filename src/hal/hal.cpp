@@ -169,20 +169,19 @@ static s4_t delta_time(u4_t time) {
 
 void hal_waitUntil (u4_t time) {
     s4_t delta = delta_time(time);
+#ifdef ARDUINO_ARCH_STM32F1
+    extern void mdelay(int, bool mode = false);
+    mdelay(delta);
+#else
     // From delayMicroseconds docs: Currently, the largest value that
     // will produce an accurate delay is 16383.
     while (delta > (16000 / US_PER_OSTICK)) {
 #ifdef ARDUINO_ARCH_STM32F1
         // Low power SLEEP
-#if 0
         uint32_t start= millis();
         while (millis() - start < 16) {
             asm("    wfi");
         }
-#else
-        extern void mdelay(int, bool mode = false);
--       mdelay(16);
-#endif
 #else
         delay(16);
 #endif
@@ -190,6 +189,7 @@ void hal_waitUntil (u4_t time) {
     }
     if (delta > 0)
         delayMicroseconds(delta * US_PER_OSTICK);
+#endif
 }
 
 // check and rewind for target time
