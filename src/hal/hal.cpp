@@ -296,7 +296,10 @@ u4_t hal_waitUntil (u4_t time) {
     // check for already too late.
     if (delta < 0)
         return -delta;
-
+#ifdef ARDUINO_ARCH_STM32F1
+    extern void mdelay(int, bool mode = false);
+    mdelay(delta);
+#else
     // From delayMicroseconds docs: Currently, the largest value that
     // will produce an accurate delay is 16383. Also, STM32 does a better
     // job with delay is less than 10,000 us; so reduce in steps.
@@ -308,15 +311,10 @@ u4_t hal_waitUntil (u4_t time) {
         // are disabled.
 #ifdef ARDUINO_ARCH_STM32F1
         // Low power SLEEP
-#if 0
         uint32_t start= millis();
         while (millis() - start < HAL_WAITUNTIL_DOWNCOUNT_MS) {
             asm("    wfi");
         }
-#else
-        extern void mdelay(int, bool mode = false);
-        mdelay(HAL_WAITUNTIL_DOWNCOUNT_MS);
-#endif
 #else
         delay(HAL_WAITUNTIL_DOWNCOUNT_MS);
 #endif
@@ -345,6 +343,7 @@ u4_t hal_waitUntil (u4_t time) {
     if (delta > 0)
         delayMicroseconds(delta * US_PER_OSTICK);
 #endif // ! defined(_mcci_arduino_version)
+#endif
 
     // we aren't "late". Callers are interested in gross delays, not
     // necessarily delays due to poor timekeeping here.
