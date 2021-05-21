@@ -296,7 +296,7 @@ u4_t hal_waitUntil (u4_t time) {
     // check for already too late.
     if (delta < 0)
         return -delta;
-#ifdef ARDUINO_ARCH_STM32F1
+#ifdef wasARDUINO_ARCH_STM32F1
     extern void mdelay(int, bool mode = false);
     mdelay(delta);
 #else
