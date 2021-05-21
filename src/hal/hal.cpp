@@ -169,7 +169,7 @@ static s4_t delta_time(u4_t time) {
 
 void hal_waitUntil (u4_t time) {
     s4_t delta = delta_time(time);
-#ifdef ARDUINO_ARCH_STM32F1
+#ifdef wasARDUINO_ARCH_STM32F1
     extern void mdelay(int, bool mode = false);
     mdelay(delta);
 #else
