@@ -167,3 +167,10 @@ bit_t os_queryTimeCriticalJobs(ostime_t time) {
     else
         return 0;
 }
+
+s4_t os_queryTimeTillJobs() {
+    if (OS.scheduledjobs)
+        return osticks2ms(OS.scheduledjobs->deadline - os_getTime());
+    else
+        return 0;
+}
