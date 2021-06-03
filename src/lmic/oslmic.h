@@ -52,6 +52,7 @@ LMIC_BEGIN_DECLS
 #define EV(a,b,c) /**/
 #define DO_DEVDB(field1,field2) /**/
 #if !defined(CFG_noassert)
+#undef ASSERT
 #define ASSERT(cond) if(!(cond)) hal_failed(__FILE__, __LINE__)
 #else
 #define ASSERT(cond) /**/
