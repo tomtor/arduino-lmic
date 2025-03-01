@@ -396,13 +396,17 @@ u1_t lmic_hal_checkTimer (u4_t time) {
 static uint8_t irqlevel = 0;
 
 void lmic_hal_disableIRQs () {
-    noInterrupts();
+//#if defined(LMIC_USE_INTERRUPTS)
+    //noInterrupts();
+//#endif
     irqlevel++;
 }
 
 void lmic_hal_enableIRQs () {
     if(--irqlevel == 0) {
-        interrupts();
+//#if defined(LMIC_USE_INTERRUPTS)
+        //interrupts();
+//#endif
 
 #if !defined(LMIC_USE_INTERRUPTS)
         // Instead of using proper interrupts (which are a bit tricky

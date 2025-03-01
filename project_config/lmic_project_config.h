@@ -11,3 +11,11 @@
 //#define CFG_sx1262_radio 1
 //#define ARDUINO_heltec_wifi_lora_32_V3
 //#define LMIC_USE_INTERRUPTS
+
+#define LMIC_LORAWAN_SPEC_VERSION    LMIC_LORAWAN_SPEC_VERSION_1_0_3
+
+#define LMIC_PRINTF_TO Serial1
+#define LMIC_DEBUG_LEVEL 0
+#define LMIC_FAILURE_TO Serial1
+
+//#define LMIC_ENABLE_arbitrary_clock_error 1
