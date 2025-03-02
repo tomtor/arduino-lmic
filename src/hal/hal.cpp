@@ -347,7 +347,11 @@ u4_t lmic_hal_waitUntil (u4_t time) {
     // check for already too late.
     if (delta < 0)
         return -delta;
-
+#if 1
+    void sleepDelay(uint16_t n);
+    sleepDelay(delta * US_PER_OSTICK / 1000);
+    return 0;
+#else
     // From delayMicroseconds docs: Currently, the largest value that
     // will produce an accurate delay is 16383. Also, STM32 does a better
     // job with delay is less than 10,000 us; so reduce in steps.
@@ -385,6 +389,7 @@ u4_t lmic_hal_waitUntil (u4_t time) {
     // we aren't "late". Callers are interested in gross delays, not
     // necessarily delays due to poor timekeeping here.
     return 0;
+#endif
 }
 
 // check and rewind for target time
@@ -396,17 +401,17 @@ u1_t lmic_hal_checkTimer (u4_t time) {
 static uint8_t irqlevel = 0;
 
 void lmic_hal_disableIRQs () {
-//#if defined(LMIC_USE_INTERRUPTS)
-    //noInterrupts();
-//#endif
+#if defined(LMIC_USE_INTERRUPTS)
+    noInterrupts();
+#endif
     irqlevel++;
 }
 
 void lmic_hal_enableIRQs () {
     if(--irqlevel == 0) {
-//#if defined(LMIC_USE_INTERRUPTS)
-        //interrupts();
-//#endif
+#if defined(LMIC_USE_INTERRUPTS)
+        interrupts();
+#endif
 
 #if !defined(LMIC_USE_INTERRUPTS)
         // Instead of using proper interrupts (which are a bit tricky

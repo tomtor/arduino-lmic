@@ -18,4 +18,8 @@
 #define LMIC_DEBUG_LEVEL 0
 #define LMIC_FAILURE_TO Serial1
 
+#undef Serial
+#define Serial Serial1
+#define LMIC_X_DEBUG_LEVEL 0
+
 //#define LMIC_ENABLE_arbitrary_clock_error 1
